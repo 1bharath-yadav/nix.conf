@@ -86,7 +86,7 @@
     description = "Archer";
     extraGroups = [ "networkmanager" "wheel" "docker" ];
     packages = with pkgs; [
-      kdePackages.kate
+      kdePackages.kate inputs.nixvim.packages.x86_64-linux.default
     ];
   };
   home-manager = {
@@ -104,7 +104,7 @@
   nixpkgs.config.firefox.enablePlasmaBrowserIntegration = true;
   # Install additional system packages
   environment.systemPackages = with pkgs; [
-    neovim bat wget zip bash unzip openssl openssh portaudio nerd-fonts.droid-sans-mono httpie efibootmgr os-prober docker vscode nmap lazydocker p7zip fwupd affine piper-tts bookworm htop btop
+    neovim  openssl openssh portaudio nerd-fonts.droid-sans-mono httpie efibootmgr os-prober docker  nmap lazydocker fwupd
     linuxKernel.packages.linux_6_6.v4l2loopback
     libva vaapiIntel vaapiVdpau libdrm v4l-utils bluez bluez-tools kdePackages.bluedevil kdePackages.bluez-qt
     libsForQt5.plasma-browser-integration kdePackages.plasma-browser-integration

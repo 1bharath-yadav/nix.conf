@@ -40,12 +40,13 @@
   };
 
   home.stateVersion = "24.11"; # Please read the comment before changing.
-
+   nixpkgs.config.allowUnfree = true;
   home.packages = with pkgs; [
     telegram-desktop
     kdePackages.filelight
     htop
     btop
+    bookworm
     neofetch
     tesseract
     libnotify
@@ -70,6 +71,10 @@
     gimp-with-plugins
     kdePackages.kdenlive
     obs-studio
+    vscode
+    p7zip
+    affine piper-tts
+    bat wget zip bash unzip
   ];
 programs.autojump.enable = true;
 

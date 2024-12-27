@@ -5,7 +5,7 @@
   # manage.
   home.username = "archer";
   home.homeDirectory = "/home/archer";
-   # Systemd user-level timers
+  # Systemd user-level timers
   systemd.user.services."20-20-20" = {
     Service = {
       Type = "oneshot";
@@ -19,9 +19,10 @@
       OnUnitActiveSec = "20min";
       AccuracySec = "1s";
     };
-    Install = { WantedBy = [ "timers.target" ]; };
+    Install = {
+      WantedBy = [ "timers.target" ];
+    };
   };
-
 
   systemd.user.services."snapper" = {
     Service = {
@@ -36,11 +37,13 @@
       OnUnitActiveSec = "30min";
       AccuracySec = "1s";
     };
-    Install = { WantedBy = [ "timers.target" ]; };
+    Install = {
+      WantedBy = [ "timers.target" ];
+    };
   };
 
   home.stateVersion = "24.11"; # Please read the comment before changing.
-   nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.allowUnfree = true;
   home.packages = with pkgs; [
     telegram-desktop
     kdePackages.filelight
@@ -73,29 +76,34 @@
     obs-studio
     vscode
     p7zip
-    affine piper-tts
-    bat wget zip bash unzip
+    affine
+    piper-tts
+    bat
+    wget
+    zip
+    bash
+    unzip
+    nix-search-cli
+    nvd.out
+
   ];
-programs.autojump.enable = true;
+  programs.autojump.enable = true;
 
-home.file = {
-  ".local/share/zsh/zsh-autosuggestions".source =
-    "${pkgs.zsh-autosuggestions}/share/zsh-autosuggestions";
+  home.file = {
+    ".local/share/zsh/zsh-autosuggestions".source =
+      "${pkgs.zsh-autosuggestions}/share/zsh-autosuggestions";
 
-  ".local/share/zsh/zsh-syntax-highlighting".source =
-    "${pkgs.zsh-syntax-highlighting}/share/zsh/site-functions";
+    ".local/share/zsh/zsh-syntax-highlighting".source =
+      "${pkgs.zsh-syntax-highlighting}/share/zsh/site-functions";
 
-  ".local/share/zsh/nix-zsh-completions".source =
-    "${pkgs.nix-zsh-completions}/share/zsh/plugins/nix";
-};
-
-
-
-
+    ".local/share/zsh/nix-zsh-completions".source = "${pkgs.nix-zsh-completions}/share/zsh/plugins/nix";
+  };
 
   home.sessionVariables = {
-     EDITOR = "nvim";
-     BAT_THEME = "gruvbox-dark";
+    EDITOR = "nvim";
+    BAT_THEME = "gruvbox-dark";
+
+
   };
 
   # Let Home Manager install and manage itself.

@@ -14,31 +14,64 @@
 
   services.flatpak.enable = true;
 
-  nix.settings.experimental-features = [
-    "nix-command"
-    "flakes"
-  ];
-
-  # Bootloader configuration
-  boot.loader.systemd-boot.enable = false; # Ensure systemd-boot is disabled
-  boot.loader.grub.enable = true; # Enable GRUB
-  boot.loader.grub.device = "nodev"; # Required for UEFI systems
-  boot.loader.grub.useOSProber = true; # Enable OS Prober for detecting other OSes
-  boot.loader.grub.efiSupport = true; # Ensure UEFI support
-  boot.loader.efi.canTouchEfiVariables = true; # Allow EFI variable access
-
-  # Kernel settings
-  boot.kernel.sysctl = {
-    "vm.swappiness" = 10;
+   nix = {
+    settings = {
+      warn-dirty = false;
+      experimental-features = "nix-command flakes";
+      auto-optimise-store = true;
+      substituters = [ "https://nix-gaming.cachix.org" ];
+      trusted-public-keys = [ "nix-gaming.cachix.org-1:nbjlureqMbRAxR1gJ/f3hxemL9svXaZF/Ees8vCUUs4=" ];
+    };
   };
-  boot.kernelModules = [ "v4l2loopback" ];
-  boot.extraModulePackages = [
-    pkgs.linuxKernel.packages.linux_6_6.v4l2loopback
-  ];
 
-  networking.hostName = "zero-book"; # Define your hostname.
-  networking.networkmanager.enable = true; # Enable networking.
+  nixpkgs = {
 
+    config = {
+      allowUnfree = true;
+      allowUnfreePredicate = pkg: builtins.elem (builtins.parseDrvName pkg.name).name [ "steam" ];
+      config.firefox.enablePlasmaBrowserIntegration = true;
+
+      permittedInsecurePackages = [
+        "openssl-1.1.1v"
+        "python-2.7.18.8"
+
+      ];
+    };
+  };
+
+  boot = {
+    #kernelParams = ["nohibernate"];
+    # tmp.cleanOnBoot = true;
+    supportedFilesystems = [ "ntfs" ];
+    loader = {
+      efi.canTouchEfiVariables = true;
+      grub = {
+        device = "nodev";
+        efiSupport = true;
+        enable = true;
+        useOSProber = true;
+        timeoutStyle = "menu";
+      };
+      timeout = 300;
+    };
+
+    kernelModules = [ "v4l2loopback" ];
+    kernel.sysctl = {
+      #"net.ipv4.tcp_congestion_control" = "bbr";
+      # "net.core.default_qdisc" = "fq";
+    };
+
+    extraModulePackages = [
+      pkgs.linuxKernel.packages.linux_6_6.v4l2loopback
+    ];
+  };
+
+   networking = {
+    hostName = "zero-book";
+    networkmanager.enable = true;
+    enableIPv6 = false;
+    firewall.enable = false;
+  };
   # Set your time zone.
   time.timeZone = "Asia/Kolkata";
 
@@ -55,13 +88,18 @@
     LC_TELEPHONE = "en_US.UTF-8";
     LC_TIME = "en_US.UTF-8";
   };
-
+   console = {
+    packages = [ pkgs.terminus_font ];
+    font = "${pkgs.terminus_font}/share/consolefonts/ter-i22b.psf.gz";
+    useXkbConfig = true;
+  };
   # Mount additional filesystems
   fileSystems."/mnt/Localdisk" = {
     device = "/dev/nvme0n1p3";
     fsType = "ntfs3";
     options = [ "defaults" ];
   };
+  programs.hyprland.enable = true;
 
   programs.nh = {
     enable = true;
@@ -119,8 +157,14 @@
   # User configuration
   users.users.archer = {
     isNormalUser = true;
-    description = "Archer";
+    description = "archer";
     extraGroups = [
+      "flatpak"
+      "audio"
+      "video"
+      "quemu"
+      "kvm"
+      "libvirtd"
       "networkmanager"
       "wheel"
       "docker"
@@ -131,6 +175,8 @@
     ];
   };
   home-manager = {
+    useGlobalPkgs = true;
+    backupFileExtension = "backup";
     # also pass inputs to home-manager modules
     extraSpecialArgs = { inherit inputs; };
     users = {
@@ -138,14 +184,10 @@
     };
   };
 
-  # programs.command-not-found.enable=false;
-  #  programs.nix-index.enable = true;
-  # Install Firefox
   programs.firefox.enable = true;
-  programs.zsh.enable = true;
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
-  nixpkgs.config.firefox.enablePlasmaBrowserIntegration = true;
+  #programs.zsh.enable = true;
+  #nixpkgs.config.allowUnfree = true;
+  #nixpkgs.config.firefox.enablePlasmaBrowserIntegration = true;
   # Install additional system packages
   environment.systemPackages = with pkgs; [
     neovim
@@ -181,7 +223,16 @@
     libsForQt5.qt5.qtgraphicaleffects
     libsForQt5.sddm
     vimPlugins.vscode-nvim
+     #####HYPERLAND###
+      waybar
+      eww
+      mako
+      wl-clipboard
+      kitty
+      alacritty
+      rofi-wayland
   ];
+  
 
   # System state and garbage collection
   system.stateVersion = "24.11";
@@ -190,9 +241,32 @@
     "@builders"
     "archer"
   ];
-  #   nix.gc = {
-  #     automatic = true;
-  #     dates = "weekly";
-  #     options = "--delete-older-than 7d";           #####      programs.nh.clean.enable   instead   nix.gc.automatic
-  #   };
+   fonts = {
+
+    packages = with pkgs; [
+      noto-fonts
+      noto-fonts-cjk-sans
+      noto-fonts-emoji
+      font-awesome
+      source-han-sans
+      source-han-sans-japanese
+      source-han-serif-japanese
+      nerd-fonts.meslo-lg
+    ];
+    fontconfig = {
+      enable = true;
+      defaultFonts = {
+        monospace = [ "Meslo LG M Regular Nerd Font Complete Mono" ];
+        serif = [
+          "Noto Serif"
+          "Source Han Serif"
+        ];
+        sansSerif = [
+          "Noto Sans"
+          "Source Han Sans"
+        ];
+      };
+    };
+  };
+
 }

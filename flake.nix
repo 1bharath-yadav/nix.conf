@@ -18,9 +18,12 @@
       self,
       nixpkgs,
       nix-index-database,
+      home-manager,
       ...
     }@inputs:
-    {
+    let
+      user="archer";
+      in{
 
       nixosConfigurations.zero-book = nixpkgs.lib.nixosSystem {
         specialArgs = { inherit inputs; };
@@ -30,6 +33,17 @@
           inputs.home-manager.nixosModules.default
           inputs.stylix.nixosModules.stylix
           nix-index-database.nixosModules.nix-index
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+
+            home-manager.users.archer = import ./hosts/zero-book/home.nix;
+            home-manager.extraSpecialArgs = {
+              inherit inputs self user;
+            };
+
+          }
         ];
       };
     };

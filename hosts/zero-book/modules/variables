@@ -1,0 +1,26 @@
+# .variables.nix
+let
+  base16Scheme = {
+    base00 = "000000";
+    base01 = "1c1c1c";
+    base02 = "262626";
+    base03 = "303030";
+    base04 = "b4b4b4";
+    base05 = "c8c8c8";
+    base06 = "e2e2e2";
+    base07 = "ffffff";
+    base08 = "f8f8f2";
+    base09 = "ff79c6";
+    base0A = "f1fa8c";
+    base0B = "50fa7b";
+    base0C = "8be9fd";
+    base0D = "6272a4";
+    base0E = "ff92df";
+    base0F = "ff5555";
+  };
+in
+{
+  stylix = {
+    base16Scheme = base16Scheme;
+  };
+}

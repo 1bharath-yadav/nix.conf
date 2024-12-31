@@ -14,15 +14,41 @@
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "/dev/disk/by-uuid/2006a4dd-48cb-440a-a186-2e0070156926";
+    { device = "/dev/disk/by-uuid/fe2f4fb4-2ad9-4c5c-868a-b781bfe6b208";
       fsType = "ext4";
     };
 
   fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/2C12-7252";
+    { device = "/dev/disk/by-uuid/3561-9048";
       fsType = "vfat";
       options = [ "fmask=0077" "dmask=0077" ];
     };
+
+  fileSystems."/mnt/Localdisk" = {
+    device = "/dev/nvme0n1p3";
+    fsType = "ntfs3";
+    options = [ "defaults" ];
+  };
+
+  fileSystems."/mnt/Ubuntu" = {
+    device = "/dev/nvme0n1p5";
+    fsType = "ext4";
+    options = [ "defaults" ];
+  };
+
+  zramSwap = {
+  enable = true;
+  priority = 100;
+  memoryPercent = 30;
+  swapDevices = 1;
+  algorithm = "zstd";
+  };
+
+  powerManagement = {
+  	enable = true;
+	  cpuFreqGovernor = "schedutil";
+  };
+  
 
   swapDevices = [ ];
 

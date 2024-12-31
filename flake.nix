@@ -5,6 +5,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixvim.url = "github:1bharath-yadav/nixvim";
     stylix.url = "github:danth/stylix";
+    hyprland-qtutils.url = "github:hyprwm/hyprland-qtutils";
     nix-index-database.url = "github:nix-community/nix-index-database";
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
     home-manager = {
@@ -18,7 +19,9 @@
       self,
       nixpkgs,
       nix-index-database,
+      hyprland-qtutils, 
       home-manager,
+
       ...
     }@inputs:
     let

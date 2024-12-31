@@ -2,6 +2,7 @@
   config,
   pkgs,
   inputs,
+  lib,
   ...
 }:
 
@@ -12,6 +13,7 @@
     inputs.home-manager.nixosModules.default
   ];
 
+
   services.flatpak.enable = true;
 
    nix = {
@@ -20,7 +22,7 @@
       experimental-features = "nix-command flakes";
       auto-optimise-store = true;
       substituters = [ "https://nix-gaming.cachix.org" ];
-      trusted-public-keys = [ "nix-gaming.cachix.org-1:nbjlureqMbRAxR1gJ/f3hxemL9svXaZF/Ees8vCUUs4=" ];
+
     };
   };
 
@@ -29,19 +31,14 @@
     config = {
       allowUnfree = true;
       allowUnfreePredicate = pkg: builtins.elem (builtins.parseDrvName pkg.name).name [ "steam" ];
-      config.firefox.enablePlasmaBrowserIntegration = true;
-
       permittedInsecurePackages = [
         "openssl-1.1.1v"
         "python-2.7.18.8"
-
       ];
     };
   };
 
   boot = {
-    #kernelParams = ["nohibernate"];
-    # tmp.cleanOnBoot = true;
     supportedFilesystems = [ "ntfs" ];
     loader = {
       efi.canTouchEfiVariables = true;
@@ -54,13 +51,7 @@
       };
       timeout = 300;
     };
-
-    kernelModules = [ "v4l2loopback" ];
-    kernel.sysctl = {
-      #"net.ipv4.tcp_congestion_control" = "bbr";
-      # "net.core.default_qdisc" = "fq";
-    };
-
+    kernelModules = [ "v4l2loopback" ];  
     extraModulePackages = [
       pkgs.linuxKernel.packages.linux_6_6.v4l2loopback
     ];
@@ -72,10 +63,9 @@
     enableIPv6 = false;
     firewall.enable = false;
   };
-  # Set your time zone.
+
   time.timeZone = "Asia/Kolkata";
 
-  # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
   i18n.extraLocaleSettings = {
     LC_ADDRESS = "en_US.UTF-8";
@@ -87,75 +77,108 @@
     LC_PAPER = "en_US.UTF-8";
     LC_TELEPHONE = "en_US.UTF-8";
     LC_TIME = "en_US.UTF-8";
-  };
+   };
    console = {
     packages = [ pkgs.terminus_font ];
     font = "${pkgs.terminus_font}/share/consolefonts/ter-i22b.psf.gz";
     useXkbConfig = true;
   };
-  # Mount additional filesystems
-  fileSystems."/mnt/Localdisk" = {
-    device = "/dev/nvme0n1p3";
-    fsType = "ntfs3";
-    options = [ "defaults" ];
-  };
-  programs.hyprland.enable = true;
 
-  programs.nh = {
-    enable = true;
-    clean.enable = true;
-    clean.extraArgs = "--keep-since 4d --keep 3";
-    flake = "/etc/nixos/hosts/zerobook";
+  programs = {
+	  hyprland = {
+      enable = true;
+      withUWSM  = true;  
+      };
+    nm-applet.indicator = true;
+    nm-applet.enable = true;
+    thunar.enable = true;
+	  thunar.plugins = with pkgs.xfce; [
+		  exo
+		  mousepad
+		  thunar-archive-plugin
+		  thunar-volman
+		  tumbler
+  	  ];
+	   xwayland.enable = true;
+     dconf.enable = true;
+     seahorse.enable = true;
+     fuse.userAllowOther = true;
+     mtr.enable = true;
+     gnupg.agent = {
+       enable = true;
+       enableSSHSupport = true;
+     };
+     zsh.enable = true;
+      nh = {
+      enable = true;
+      clean.enable = true;
+      clean.extraArgs = "--keep-since 4d --keep 3";
+      flake = "/home/archer/nix.conf";
+     };
   };
-  # Enable X11 and KDE
-  services.xserver.enable = true;
-  services.xserver.xkb = {
+
+  xdg.portal = {
+    enable = true;
+    wlr.enable = false;
+    extraPortals = [
+      pkgs.xdg-desktop-portal-gtk
+    ];
+    configPackages = [
+      pkgs.xdg-desktop-portal-gtk
+      pkgs.xdg-desktop-portal
+    ];
+  };
+
+  services = {
+    tlp.enable = true;
+    xserver.xkb = {
     layout = "us";
     variant = "";
-  };
-  services.displayManager.sddm.enable = true;
-  services.desktopManager.plasma6.enable = true;
-  stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark-medium.yaml";
-
-  # OR
-
-  stylix.cursor.package = pkgs.bibata-cursors;
-  stylix.cursor.name = "Bibata-Modern-Ice";
-
-  stylix.fonts = {
-    monospace = {
-      package = pkgs.nerdfonts.override { fonts = [ "JetBrainsMono" ]; };
-      name = "JetBrainsMono Nerd Font Mono";
     };
-    sansSerif = {
-      package = pkgs.dejavu_fonts;
-      name = "DejaVu Sans";
+    xserver = {
+      enable = true; 
+      displayManager.gdm.enable = true;
     };
-    serif = {
-      package = pkgs.dejavu_fonts;
-      name = "DejaVu Serif";
+    gnome.gnome-keyring.enable = true;
+    gvfs = {
+      enable = true;
+      package = lib.mkForce pkgs.gnome.gvfs;
+    };
+    pipewire = {
+      enable = true;
+      audio.enable = true;
+      alsa.enable = true;
+      alsa.support32Bit = true;
+      pulse.enable = true;
+      wireplumber.enable = true;
     };
   };
-  #stylix.image = ./my-cool-wallpaper.png;
 
-  virtualisation.docker.enable = true;
-
-  hardware.bluetooth.enable = true;
-  hardware.bluetooth.powerOnBoot = true;
-  hardware.pulseaudio.enable = false;
-  security.rtkit.enable = true;
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
+  #services.displayManager.sddm.enable = true;
+  #services.desktopManager.plasma6.enable = true;
+  #virtualisation.docker.enable = true;
+  
+  hardware={
+    pulseaudio.enable = false;
+    bluetooth = {
+    enable = false;
+    powerOnBoot = true;
+  };
   };
 
-  # Enable printing
-  services.printing.enable = true;
+  security = {
+    rtkit.enable = true;
+    pam.services.swaylock.text = ''
+      auth include login
+    '';
+  };
 
-  # User configuration
-  users.users.archer = {
+  stylix.image= ./alian.jpeg;
+  
+  users={
+    mutableUsers=true;
+    defaultUserShell = pkgs.zsh;
+    users.archer = {
     isNormalUser = true;
     description = "archer";
     extraGroups = [
@@ -174,67 +197,114 @@
       inputs.nixvim.packages.x86_64-linux.default
     ];
   };
+  };
   home-manager = {
     useGlobalPkgs = true;
     backupFileExtension = "backup";
-    # also pass inputs to home-manager modules
     extraSpecialArgs = { inherit inputs; };
     users = {
       "archer" = import ./home.nix;
     };
   };
 
-  programs.firefox.enable = true;
-  #programs.zsh.enable = true;
-  #nixpkgs.config.allowUnfree = true;
-  #nixpkgs.config.firefox.enablePlasmaBrowserIntegration = true;
-  # Install additional system packages
+   # For Electron apps to use wayland
+  environment.sessionVariables.NIXOS_OZONE_WL = "1";
+
   environment.systemPackages = with pkgs; [
-    neovim
-    openssl
-    openssh
-    portaudio
-    nerd-fonts.droid-sans-mono
-    httpie
-    efibootmgr
-    os-prober
-    docker
-    nmap
-    lazydocker
-    fwupd
-    linuxKernel.packages.linux_6_6.v4l2loopback
-    libva
-    vaapiIntel
-    vaapiVdpau
-    libdrm
-    v4l-utils
-    bluez
-    bluez-tools
-    kdePackages.bluedevil
-    kdePackages.bluez-qt
-    libsForQt5.plasma-browser-integration
-    kdePackages.plasma-browser-integration
-    nix-output-monitor
     base16-schemes
     bibata-cursors
+    bluez
+    bluez-tools
+    docker
+    efibootmgr
+    fastfetch
+    fwupd
+    git-crypt
+    httpie
+    lazydocker
+    libdrm
+    libnotify
+    libva
+    linuxKernel.packages.linux_6_6.v4l2loopback
+    neovim
+    nix-output-monitor
+    nmap
+    openssh
+    openssl
+    os-prober
+    portaudio
+    vaapiIntel
+    vaapiVdpau
+    v4l-utils
+    (ffmpeg-full.override { withSvtav1 = true; svt-av1=pkgs.svt-av1-psy; })
+    (av1an.override { withSvtav1 = true; svt-av1=pkgs.svt-av1-psy; })
+    
+  # inputs.fileserver.packages.${pkgs.system}.default
+   
+ /*  HYPERLAND  */
+    baobab
+    blueman 
+    brightnessctl
+    compsize
+    coreutils-full
+    cpufrequtils
+    duf  
+    eww
+    gnutar
+    gsettings-qt
+    gtk-engine-murrine 
+    grim
+    hyprpaper
+    imagemagick
+    jq
+    kitty
+    libappindicator
+    lm_sensors
+    mako
+    maxfetch
+    pamixer
+    pciutils
+    polkit_gnome
+    power-profiles-daemon
+    pyprland
+    qt6.qtwayland
+    qt6Packages.qtstyleplugin-kvantum # kvantum
+    roboto
+    slurp
+    smartmontools
+    speedtest-cli
+    swappy
+    swaynotificationcenter
+    veracrypt
+    waybar
+    websocat
+    wl-clipboard
+    wlogout
+    wlrctl
+    wofi
+    xdg-user-dirs
+    xdg-utils
+    yad
+
+    ###  FONTS ****
+    nerd-fonts.droid-sans-mono
+    nerd-fonts.terminess-ttf
     nerd-fonts.fira-code
-    vimPlugins.nvim-web-devicons
-    vimPlugins.gruvbox
-    libsForQt5.qt5.qtgraphicaleffects
-    libsForQt5.sddm
-    vimPlugins.vscode-nvim
-     #####HYPERLAND###
-      waybar
-      eww
-      mako
-      wl-clipboard
-      kitty
-      alacritty
-      rofi-wayland
+    /*  KDE    
+        qt6ct
+        kdePackages.bluedevil
+        kdePackages.bluedevil
+        kdePackages.bluez-qt
+        libsForQt5.plasma-browser-integration
+        kdePackages.plasma-browser-integration
+        vimPlugins.nvim-web-devicons
+        vimPlugins.gruvbox
+        libsForQt5.qt5.qtgraphicaleffects
+        libsForQt5.sddm
+        vimPlugins.vscode-nvim  */
   ];
   
 
-  # System state and garbage collection
   system.stateVersion = "24.11";
   nix.settings.allowed-users = [
     "@wheel"
@@ -242,7 +312,6 @@
     "archer"
   ];
    fonts = {
-
     packages = with pkgs; [
       noto-fonts
       noto-fonts-cjk-sans
@@ -253,20 +322,5 @@
       source-han-serif-japanese
       nerd-fonts.meslo-lg
     ];
-    fontconfig = {
-      enable = true;
-      defaultFonts = {
-        monospace = [ "Meslo LG M Regular Nerd Font Complete Mono" ];
-        serif = [
-          "Noto Serif"
-          "Source Han Serif"
-        ];
-        sansSerif = [
-          "Noto Sans"
-          "Source Han Sans"
-        ];
-      };
-    };
   };
-
 }
